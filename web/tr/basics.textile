@@ -1,0 +1,442 @@
+---
+layout: post
+title: Temel
+next: basics2.textile
+---
+
+Not: Bu ders içeriği mümkün olduğunda Türkçe terimler kullanarak hazırlanmıştır. Gerekli yerlerde kelimelerin yanlarına İngilizceleri de eklenmiştir. Terimlerin farklı kullanımları hakkındaki yorumlarınızı lütfen paylaşınız.
+
+Bu ders aşağıdaki konuları kapsar:
+* "Ders hakkında":#overview
+* "İfadeler(Expressions)":#expressions
+* "Değerler":#val
+* "Fonksiyonlar":#functions
+* "Sınıflar":#class
+* "Basit Kalıtım(Inheritence)":#extends
+* "Özellikler (Traits)":#trait
+* "Tipler (Types)":#types
+
+h2(#overview). Ders Hakkında
+
+İlk bir kaç dersin içeriği basit sözdizimi ve kavramlar hakkında olacak. Sonra daha fazla örnekler bunları açacağız.
+
+Bazı örnekler yorumlayıcı(interpreter) üzerinde diğerleri kaynak dosylar olarak verilecektir.
+
+Mevcut bir yorumlayıcı üzerinde çalışmak problem uzayını keşfetmeyi kolaylaştırmaktadır.
+
+
+h3. Neden Scala?
+
+* Anlatımsal (Expressive)
+** Birinci sınıf fonksiyonlar
+** Kapalılık (Closures) 
+* Kısa ve Öz
+** Tipten anlam çıkarma
+** Fonksiyon yaratırken ifadesel sözdizim
+* Java ile beraber çalışabilme
+** Java kütüphanelerini tekrar kullanbilir
+** Java araçlarını tekrar kullanabilir
+** Bu kullanımlar performans düşüşüne neden olmaz
+
+h3. Scala Nasıl Çalışır?
+
+* Java bytecode olarak derlenir
+* Standard JVM ile çalışır
+** Hatta Dalvik gibi bazı standart olmayan JVMlerle de çalışır
+** Scala derleryicisi Java derleyicisini yazan yazar tarafından yazılmıştır
+
+h3. Scala'ya Başlarken
+
+Scala daha güzel bir formatta yazılmış Java değildir. Açık bir zihinle yaklaşmalısınız. Böylece bu dersler dışında da daha fazlasını öğrenebilirsiniz.
+
+h3. Scala'yı Kur
+
+Scala Okulu örnekler "Scala 2.9.x":https://www.scala-lang.org/download/2.9.3.html ile çalışır. Eğer Scala 2.10.x ya da daha yeni bir versiyon kullanıyorsanız hepsi değil ama _çoğu_ örnek çalışacaktır.
+
+h3. Yorumlayıcıyı Başlat
+
+Konsola <code>sbt console</code> yazarak başlatabilirsiniz.
+
+<pre>
+$ sbt console
+
+[...]
+
+Welcome to Scala version 2.8.0.final (Java HotSpot(TM) 64-Bit Server VM, Java 1.6.0_20).
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala>
+</pre>
+
+
+h2(#expressions). İfadeler
+
+<pre>
+scala> 1 + 1
+res0: Int = 2
+</pre>
+
+res0 otomatik olarak yorumlayıcı tarafından ifadenize için yaratılmış bir değerdir. Int tipindedir ve Integer 2 değerini içerir.
+
+(Neredeyse) Scala'da her şey bir ifadedir.
+
+h2(#val). Değerler
+
+Bir ifadenin sonucuna isim verebilirsiniz.
+
+<pre>
+scala> val two = 1 + 1
+two: Int = 2
+</pre>
+
+val için tekrardan ilişkilendirme yapılamaz.
+
+h3. Değişkenler
+
+Eğer ilişkilemdirmeyi değiştirmek istiyorsanız val yerine <code>var</code> kullanbilirsiniz.
+
+<pre>
+scala> var name = "steve"
+name: java.lang.String = steve
+
+scala> name = "marius"
+name: java.lang.String = marius
+</pre>
+
+h2(#functions). Fonksiyonlar
+
+Bir fonksiyonu def ile oluşturabilirsiniz.
+
+<pre>
+scala> def addOne(m: Int): Int = m + 1
+addOne: (m: Int)Int
+</pre>
+
+Scala'da, fonksiyonların tip imzalarını belirtmek zorundasınız. Yorumlayıcı size bu imzaları tekrar gösterecektir.
+
+<pre>
+scala> val three = addOne(2)
+three: Int = 3
+</pre>
+
+Hiç bir argüman almayan fonksiyonlarda parantezi boş bırakmalısınız.
+
+<pre>
+scala> def three() = 1 + 2
+three: ()Int
+
+scala> three()
+res2: Int = 3
+
+scala> three
+res3: Int = 3
+</pre>
+
+h3. İsimsiz Fonksiyonlar
+
+İsimsiz fonksiyonlar yaratabilirsiniz.
+
+<pre>
+scala> (x: Int) => x + 1
+res2: (Int) => Int = <function1>
+</pre>
+
+Bu fonksiyon, x olarak isimlendirilen Int değere 1 ekler.
+
+<pre>
+scala> res2(1)
+res3: Int = 2
+</pre>
+
+İsimsiz fonksiyonları başka fonksiyonlara geçirebileceğiniz gibi val olarak kaydedebilirsiniz.
+
+<pre>
+scala> val addOne = (x: Int) => x + 1
+addOne: (Int) => Int = <function1>
+
+scala> addOne(1)
+res4: Int = 2
+</pre>
+
+Eğer fonksiyonunuz birçok ifadeden oluşuyorsa, {} kullanarak kendinize rahat bir alan açabilirsiniz.
+
+<pre>
+def timesTwo(i: Int): Int = {
+  println("hello world")
+  i * 2
+}
+</pre>
+
+İsimsiz fonksiyonlar için bu da doğru bir tanımdır.
+
+<pre>
+scala> { i: Int =>
+  println("hello world")
+  i * 2
+}
+res0: (Int) => Int = <function1>
+</pre>
+
+Bu sözdizimini çoğunlukla isimsiz fonksiyonları argüman olarak geçirirken göreceksiniz.
+
+h3. Kısmi uygulama
+
+Bir fonksiyonu alt tire(_) kullanarak kısmi olarak uygulayabilirsiniz. Bu size başka bir fonksiyon verir. Scala alt tireyi farklı bağlamlarda farklı anlamlar ifade edecek şekilde kullanır. Fakat çoğunlukla isimsiz sihirli bir genelgeçer olarak düşünebilirsiniz. Bu bağlamda <code>{ _ + 2 }</code> isimsiz parametreyi ifade eder. Şu şekilde kullanabilirsiniz: 
+
+<pre>
+scala> def adder(m: Int, n: Int) = m + n
+adder: (m: Int,n: Int)Int
+</pre>
+
+<pre>
+scala> val add2 = adder(2, _:Int)
+add2: (Int) => Int = <function1>
+
+scala> add2(3)
+res50: Int = 5
+</pre>
+
+Argüman listesindeki herhangi bir argümanı kısmi olarak uygulayabilirsiniz, sadece sonuncuyu değil.
+
+h3. Fonksiyon Currying
+
+Bazen insanlara bazı argümanları şimdi diğerlerini sonra uyguluyabilmeye izin vermek daha anlamlı olabilir.
+
+Buradaki örnekte iki numaranın çarpımını derleyen bir fonksiyon var. Fonksiyonu ilk çağırdığınızda hangisnin çarpan olduğunda daha sonraki çağırımda ise çarpılan olduğuna karar verirsiniz. 
+
+<pre>
+scala> def multiply(m: Int)(n: Int): Int = m * n
+multiply: (m: Int)(n: Int)Int
+</pre>
+
+İki argümanı birlikte kullanarakta çağırabilirsiniz.
+
+<pre>
+scala> multiply(2)(3)
+res0: Int = 6
+</pre>
+
+İlk argümanı şimdi doldurup ikincisini kısmı olarakta uygulayabilirsiniz.
+
+<pre>
+scala> val timesTwo = multiply(2) _
+timesTwo: (Int) => Int = <function1>
+
+scala> timesTwo(3)
+res1: Int = 6
+</pre>
+
+Çoklu argümanı olan herhangi bir fonksiyonu alıp currleyebilirsiniz. Daha önce tanımladığımız <code>adder</code> deneyelim.
+
+<pre>
+scala> val curriedAdd = (adder _).curried
+curriedAdd: Int => (Int => Int) = <function1>
+
+scala> val addTwo = curriedAdd(2)
+addTwo: Int => Int = <function1>
+
+scala> addTwo(4)
+res22: Int = 6
+</pre>
+
+h3. Değişken uzunluktaki argümanlar
+
+Tekrarlayan tipte parametre alabilen metotlar için özel bir sözdizimi vardır. String'in <code>capitalize</code> fonksiyonunu birden fazla String değere uygulayabilmek için, şu şekilde yazabilirsiniz:
+
+<pre>
+def capitalizeAll(args: String*) = {
+  args.map { arg =>
+    arg.capitalize
+  }
+}
+
+scala> capitalizeAll("rarity", "applejack")
+res2: Seq[String] = ArrayBuffer(Rarity, Applejack)
+</pre>
+
+h2(#class). Sınıflar
+
+<pre>
+scala> class Calculator {
+     |   val brand: String = "HP"
+     |   def add(m: Int, n: Int): Int = m + n
+     | }
+defined class Calculator
+
+scala> val calc = new Calculator
+calc: Calculator = Calculator@e75a11
+
+scala> calc.add(1, 2)
+res1: Int = 3
+
+scala> calc.brand
+res2: String = "HP"
+</pre>
+
+Yukarıdaki örneklerde metotları tanımlamak için def ve değerleri tanımlamak için val kullanılmıştır. Metotlar sadece sınıfların durumuna(state) erişebilen fonksiyonlardır.
+
+h3. Constructor
+
+Constructorlar özel metotlar değillerdir. Bunlar sınıftaki metot tanımının dışında kodlardır. Şimdi Calculator örneğini genişleterek bir constructor argüman alalım ve bunu iç durumu ilkleme(initialize) sırasında kullanalım.
+
+<pre>
+class Calculator(brand: String) {
+  /**
+   * A constructor.
+   */
+  val color: String = if (brand == "TI") {
+    "blue"
+  } else if (brand == "HP") {
+    "black"
+  } else {
+    "white"
+  }
+
+  // An instance method.
+  def add(m: Int, n: Int): Int = m + n
+}
+</pre>
+
+Görüldüğü gibi iki farklı tipte yorum kullanıldı. 
+
+Constructor bir örneği oluştururken de kullanılabilir:
+
+<pre>
+scala> val calc = new Calculator("HP")
+calc: Calculator = Calculator@1e64cc4d
+
+scala> calc.color
+res0: String = black
+</pre>
+
+h3. İfadeler
+
+Calculator örneğimiz Scala'nın nasıl ifadeye dayalı olduğu hakkında bir örnek vermiştir. Color değeri if/else ifadesine bağlanmıştır. Scala büyük ölçüde ifadeye dayalıdır. Çoğu şey deyimden(statement) çok ifadedir.
+
+h3. Fonksiyon mu Metot mu
+
+Fonksiyonlar ve metotlar çoğunlukla birbirleriyle değiştirilebilirdir. Fonksiyonlar ve metotlar birbirine çok benzediğinde çağırdığınız <em>şeyin</em> fonksiyon mu metot mu olduğunu hatırlamayabilirisiniz. Metotlar ve fonksiyonlar arasındaki farka denk geldiğinizde, bu sizin kafanızı karıştırabilir.
+
+<pre>
+scala> class C {
+     |   var acc = 0
+     |   def minc = { acc += 1 }
+     |   val finc = { () => acc += 1 }
+     | }
+defined class C
+
+scala> val c = new C
+c: C = C@1af1bd6
+
+scala> c.minc // calls c.minc()
+
+scala> c.finc // returns the function as a value:
+res2: () => Unit = <function0>
+</pre>
+
+Bir "fonksiyonu" parantezsiz diğerini parentezli çağırdığınızda, <em>Hoppala, Ben Scala fonksiyonlarının nasıl çalıştığını biliyorum sanıyordum, ama sanırım bilmiyormuşum. Belki de bazen parantezle çağırmak gerekiyor?</em> diye düşünebilirsiniz. Fonksiyonları anlamışsınızdır ama metot kullanıyorsunuzdur.
+
+When you can call one "function" without parentheses but not another, you might think <em>Whoops, I thought I knew how Scala functions worked, but I guess not. Maybe they sometimes need parentheses?</em> You might understand functions, but be using a method.
+
+Pratikte, fonksiyon ve metot arasındaki farka hakim olmadan harika şeyler yapabilirsiniz. Eğer Scala'ya yeniyseniz ve bunları okursanız  <a href="https://www.google.com/search?q=difference+scala+function+method">farkların açıklamaları</a>, takip etmekte zorluk yaşayabilirsiniz. Bu sizin Scala kullanırken sorun yaşayacağınız anlamına gelmez. Bu sadece metotlar ve fonksiyonlar arasındaki fark güç anlaşıldığından dolayı, açıklamalar da dilin daha derin kısımlarına girerek anlatmaya çalıştığındandır.
+
+h2(#extends). Kalıtım
+
+<pre>
+class ScientificCalculator(brand: String) extends Calculator(brand) {
+  def log(m: Double, base: Double) = math.log(m) / math.log(base)
+}
+</pre>
+*Ayrıca bkz* Effective Scala şuna dikkat çekiyor, eğer alt sınıf üst sınıftan farklı değilse <a href="https://twitter.github.com/effectivescala/#Types%20and%20Generics-Type%20aliases">Type alias</a>  <code>extends</code> kullanmaktan daha iyidir. A Tour of Scala  <a href="https://www.scala-lang.org/node/125">Subclassing</a> şurada anlatıyor.
+
+h3. Metotları aşırı yükleme(Overloading)
+
+<pre>
+class EvenMoreScientificCalculator(brand: String) extends ScientificCalculator(brand) {
+  def log(m: Int): Double = log(m, math.exp(1))
+}
+</pre>
+
+h3. Soyut Sınıflar
+
+Bir <em>soyut sınıfı</em> şöyle tanımlayabilirsiniz, bazı metotları tanımlayan fakat onları gerçekleştirmeyen(implement) sınıflar. Bunun yerine soyut sınıfı genişleten(extend) alt sınıflar bu metotları tanımlar. Bir soyut sınıfın örneğini yaratamazsınız. 
+
+<pre>
+scala> abstract class Shape {
+     |   def getArea():Int    // subclass should define this
+     | }
+defined class Shape
+
+scala> class Circle(r: Int) extends Shape {
+     |   def getArea():Int = { r * r * 3 }
+     | }
+defined class Circle
+
+scala> val s = new Shape
+<console>:8: error: class Shape is abstract; cannot be instantiated
+       val s = new Shape
+               ^
+
+scala> val c = new Circle(2)
+c: Circle = Circle@65c0035b
+</pre>
+
+h2(#trait). Özellikler(Traits)
+
+<code>özellikler</code> alanlar ve davranışlar içeren ve bunları sınıflardan genişletip ya da mixin kullanarak çağırabildiğiniz derlemelerdir.
+
+<pre>
+trait Car {
+  val brand: String
+}
+
+trait Shiny {
+  val shineRefraction: Int
+}
+</pre>
+
+<pre>
+class BMW extends Car {
+  val brand = "BMW"
+}
+</pre>
+
+Bir sınıf birden fazla özelliği <code>with</code> anahtar kelimesini kullanarak genişletebilir:
+
+<pre>
+class BMW extends Car with Shiny {
+  val brand = "BMW"
+  val shineRefraction = 12
+}
+</pre>
+
+*Ayrıca bkz* Effective Scala'nın <a href="https://twitter.github.com/effectivescala/#Object oriented programming-Traits">özellikler</a> hakkında görüşleri var .
+
+*Ne zaman soyut sınıf yerine özellik kullanmak istersiniz?* Eğer arayüz(interface) gibi bir tip tanımlamak isterseniz, özellik ve soyut sınıf arasında seçmekte zorlanabilirsiniz. 
+*When do you want a Trait instead of an Abstract Class?* If you want to define an interface-like type, you might find it difficult to choose between a trait or an abstract class. Her ikisi de size bazı davranışlarla birlikte tip tanımlamanıza izin verir, diğer tanımlamaları da genişletenlerden bekler. Bazı kabul görmüş kurallar:
+
+<ul>
+<li>Özellikleri kullanmaya çalışın. Bir sınıf birden fazla özelliği genişletebilir fakat sadece bir sınıfı genişletebilir.
+<li>Eğer bir constructor parametresine ihtiyacınız varsa, soyut sınıf kullanın. Soyut sınıf constructorları parametreler alabilirler, özellikler alamazlar. Örnek olarak, şunu diyemezsiniz <code>trait t(i: Int) {}</code>; <code>i</code> parametresi geçersizdir.
+</ul>
+
+Bu soruyu soran ilk kişi siz değilsiniz. Daha detaylı cevaplar için "stackoverflow:Scala traits vs abstract classes":https://stackoverflow.com/questions/1991042/scala-traits-vs-abstract-classes, "Difference between Abstract Class and Trait":https://stackoverflow.com/questions/2005681/difference-between-abstract-class-and-trait, ve "Programming in Scala: To trait, or not to trait?":https://www.artima.com/pins1ed/traits.html#12.7
+
+h2(#types). Tipler
+
+Daha önce Number tipinde <code>Int</code> alan bir fonksiyon tanımladığımızı gördünüz. Fonksiyonlarda aynı zamanda genel olabilir ve her tip üzerinde çalışabilir. Böyle olduğunda tip parametresinin köşeli parantez sözdiziminde tanıtıldığını görürsünüz. İşte anahtar ve değerler içeren bir Cache örneği.
+
+<pre>
+trait Cache[K, V] {
+  def get(key: K): V
+  def put(key: K, value: V)
+  def delete(key: K)
+}
+</pre>
+
+Metotlar aynı zamanda tanıtılmış tip parametreleri de içerebilirler.
+
+<pre>
+def remove[K](key: K)
+</pre>
