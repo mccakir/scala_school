@@ -413,8 +413,7 @@ class BMW extends Car with Shiny {
 
 *Ayrıca bkz* Effective Scala'nın <a href="https://twitter.github.com/effectivescala/#Object oriented programming-Traits">özellikler</a> hakkında görüşleri var .
 
-*Ne zaman soyut sınıf yerine özellik kullanmak istersiniz?* Eğer arayüz(interface) gibi bir tip tanımlamak isterseniz, özellik ve soyut sınıf arasında seçmekte zorlanabilirsiniz. 
-*When do you want a Trait instead of an Abstract Class?* If you want to define an interface-like type, you might find it difficult to choose between a trait or an abstract class. Her ikisi de size bazı davranışlarla birlikte tip tanımlamanıza izin verir, diğer tanımlamaları da genişletenlerden bekler. Bazı kabul görmüş kurallar:
+*Ne zaman soyut sınıf yerine özellik kullanmak istersiniz?* Eğer arayüz(interface) gibi bir tip tanımlamak isterseniz, özellik ve soyut sınıf arasında seçmekte zorlanabilirsiniz. Her ikisi de size bazı davranışlarla birlikte tip tanımlamanıza izin verir, diğer tanımlamaları da genişletenlerden bekler. Bazı kabul görmüş kurallar:
 
 <ul>
 <li>Özellikleri kullanmaya çalışın. Bir sınıf birden fazla özelliği genişletebilir fakat sadece bir sınıfı genişletebilir.

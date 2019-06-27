@@ -1,0 +1,330 @@
+---
+prev: basics.textile
+next: collections.textile
+title: Basics continued
+layout: post
+---
+
+Bu ders aşağıdaki konuları kapsar:
+* "Uygulama Metotları":#apply
+* "Nesneler":#object
+* "Fonksiyonlar Nesnedir":#fnobj
+* "Paketler":#package
+* "Örüntü ":#match
+* "case classes":#caseclass
+* "try-catch-finally":#exception
+
+h2(#apply). Uygulama Metotları
+
+Uygulama metotları bir sınıfın ya da objenin tek kullanım amacı varsa size sözdizimsel güzellik sağlar.
+
+<pre>
+scala> class Foo {}
+defined class Foo
+
+scala> object FooMaker {
+     |   def apply() = new Foo
+     | }
+defined module FooMaker
+
+scala> val newFoo = FooMaker()
+newFoo: Foo = Foo@5b83f762
+</pre>
+
+ya da
+
+<pre>
+scala> class Bar {
+     |   def apply() = 0
+     | }
+defined class Bar
+
+scala> val bar = new Bar
+bar: Bar = Bar@47711479
+
+scala> bar()
+res8: Int = 0
+</pre>
+
+Buradaki örnek nesne bir metot çağırıyor gibi gözüküyor. Bu konuda daha fazlası sonra!
+
+h2(#object). Nesneler
+
+Nesneler bir sınıfın tek örneğini tutmak için kullanılır.Daha çok nesne üreten nesneler için kullanılır.
+
+<pre>
+object Timer {
+  var count = 0
+
+  def currentCount(): Long = {
+    count += 1
+    count
+  }
+}
+</pre>
+
+Nasıl kullanırız:
+
+<pre>
+scala> Timer.currentCount()
+res0: Long = 1
+</pre>
+
+Sınıflar ve nesnelerin isimleri aynı olabilir. Bu nesnelere 'Ortak Nesne' denir. Bunları çoğunlukla nesne üreten nesneler için kullanırız.
+
+Burada verilen küçük örnek yeni nesne yaratırken 'new' kullanımı ihtiyacını kaldırmaya yarıyor. 
+
+<pre>
+class Bar(foo: String)
+
+object Bar {
+  def apply(foo: String) = new Bar(foo)
+}
+</pre>
+
+
+h2(#fnobj). Fonksiyonlar Nesnedir
+
+Scala'da, genellikle nesne-fonksiyonel programlamadan bahsediriz. Bu ne anlama gelmektedir? Bir fonksiyon gerçekten nedir?
+
+Bir fonksiyon bir dizi özellikten oluşur. Tam olarak, tek argüman alan bir fonskiyon Function1 özelliğinin örneğidir. Bu özellik daha önce öğrendiğimiz <code>apply()</code> sözdizimsel güzelliğini tanımlar ve size bir nesneyi fonksiyon gibi çağırmanıza izin verir.
+
+<pre>
+scala> object addOne extends Function1[Int, Int] {
+     |   def apply(m: Int): Int = m + 1
+     | }
+defined module addOne
+
+scala> addOne(1)
+res2: Int = 2
+</pre>
+
+Function0'dan Function22'a kadar özellik vardır. Neden 22? Bu bir keyfi sihirli numara. Ben hiç bir zaman 22 den fazla argüman alan bir fonksiyona ihtiyaç duymadım dolayısıyla işe yarıyor gibi gözüküyor.
+
+Uygulamanın sözdizimsel güzelliği fonksiyonal ve nesne programlamanın ikililiğini birleştirmeye yardımcı olur. Bunlara sınıfları geçirebilirsiniz ve onları fonksiyon olarak kullanabilirsiniz. Fonksiyonlar aslında gizli birer sınıf örnekleridir.
+
+Bu sınıfta her metot tanımladığınızda, bir Fonksiyon* örneği alıyorsunuz demek midir? Hayır, sınıflar içerisindeki metotlar metottur. Ama REPL'de tek başına tanımlanan metotlar Function* örnekleridir.
+
+Sınıflar aynı zamanda fonksiyon genişletebilir ve bu örnekler () ile çağırılabilir.
+
+<pre>
+scala> class AddOne extends Function1[Int, Int] {
+     |   def apply(m: Int): Int = m + 1
+     | }
+defined class AddOne
+
+scala> val plusOne = new AddOne()
+plusOne: AddOne = <function1>
+
+scala> plusOne(1)
+res0: Int = 2
+</pre>
+
+A nice short-hand for <code>extends Function1[Int, Int]</code> is <code>extends (Int => Int)</code>
+
+<pre>
+class AddOne extends (Int => Int) {
+  def apply(m: Int): Int = m + 1
+}
+</pre>
+
+h2(#package). Paketler
+
+Kodunuzu paketler içerisinde düzenleyebilirsiniz.
+
+<pre>
+package com.twitter.example
+</pre>
+
+Bu pakette olması için dosyanın en üstünde dosyadaki her şeyi bildireceğiz. 
+
+Değerler ve fonksiyonlar bir sınıf ya da nesnenin dışında olamazlar. Nesneler durağan fonksiyonları düzenlemek için kullanışlı bir araçtır.
+
+<pre>
+package com.twitter.example
+
+object colorHolder {
+  val BLUE = "Blue"
+  val RED = "Red"
+}
+</pre>
+
+Şimdi üyelere doğrudan erişebilirsiniz.
+
+<pre>
+println("the color is: " + com.twitter.example.colorHolder.BLUE)
+</pre>
+
+Bu nesneyi tanımladığınızda Scala REPL'in ne dediğine dikkat edin:
+
+<pre>
+scala> object colorHolder {
+     |   val Blue = "Blue"
+     |   val Red = "Red"
+     | }
+defined module colorHolder
+</pre>
+
+Bu size şunun hakkında ufak bir ipucunu verir, Scala'nın tasarımcıları nesneleri Scala'nın modül sisteminin bir parçası olması için tasarlamıştır.
+
+h2(#match). Örüntü Eşleştirme
+
+Scala'nın en kullanışlı kısımlarından biridir.
+
+Değerleri eşleştirme
+
+<pre>
+val times = 1
+
+times match {
+  case 1 => "one"
+  case 2 => "two"
+  case _ => "some other number"
+}
+</pre>
+
+Koruyucuyla eşleştirme
+
+<pre>
+times match {
+  case i if i == 1 => "one"
+  case i if i == 2 => "two"
+  case _ => "some other number"
+}
+</pre>
+
+Değişken 'i' içerisindeki değeri nasıl yakaladığımıza dikkat edin.
+
+İfadedeki son durumda <code>_</code> bir genelgeçerdir. Böylece her ifadeyi işleyebileceğimizden emin oluruz. Aksi halde eşleşmeyen bir değer geçirdiğimizde çalışma zamanı hatasıyla uğraşmak zorunda kalırız. Bu konuyu sonra tekrar tartışacağız.
+
+*Ayrıca bkz* Effective Scala'nın bu konudaki fikirleri var; <a href="https://twitter.github.com/effectivescala/#Functional programming-Pattern matching">ne zaman örüntü eşleştirme kullanırız</a> ve <a href="https://twitter.github.com/effectivescala/#Formatting-Pattern matching">örüntü eşleştirme biçimlendirme</a>. A Tour of Scala <a href="https://www.scala-lang.org/node/120">Örüntü Eşleştirme</a> tanımı.
+
+h3. Tip eşleştirme
+
+Farklı tiplerin değerlerini <code>match</code> kullanarak farklı olarak işleyebilirsiniz.
+
+<pre>
+def bigger(o: Any): Any = {
+  o match {
+    case i: Int if i < 0 => i - 1
+    case i: Int => i + 1
+    case d: Double if d < 0.0 => d - 0.1
+    case d: Double => d + 0.1
+    case text: String => text + "s"
+  }
+}
+</pre>
+
+h3. Sınıf üyelerini eşleştirme
+
+Daha önceki hesap makinemizi hatırlayın.
+
+Şimdi bunları tiplerine göre sınıflandıralım.
+
+İlk olarak zahmetli yönteme bakalım.
+
+<pre>
+def calcType(calc: Calculator) = calc match {
+  case _ if calc.brand == "HP" && calc.model == "20B" => "financial"
+  case _ if calc.brand == "HP" && calc.model == "48G" => "scientific"
+  case _ if calc.brand == "HP" && calc.model == "30B" => "business"
+  case _ => "unknown"
+}
+</pre>
+
+Bu gerçekten meşakkatliydi. Neyse ki Scala bunun için özel olarak bazı araçlar sunuyor.
+
+h2(#caseclass). Durum Sınıfları
+
+Durum sınıfları pratik olarak sınıf içeriklerini depolamak ve eşleştirmek için kullanılır. Onları 'new' kullanmadan yapılandırabiliriz.
+
+<pre>
+scala> case class Calculator(brand: String, model: String)
+defined class Calculator
+
+scala> val hp20b = Calculator("HP", "20b")
+hp20b: Calculator = Calculator(hp,20b)
+
+</pre>
+
+Durum sınıfları otomatik olarak constructor argümanlarına bağlı olarak equality ve hoş toString metotlarına sahiptirler.
+
+<pre>
+scala> val hp20b = Calculator("HP", "20b")
+hp20b: Calculator = Calculator(hp,20b)
+
+scala> val hp20B = Calculator("HP", "20b")
+hp20B: Calculator = Calculator(hp,20b)
+
+scala> hp20b == hp20B
+res6: Boolean = true
+</pre>
+
+Durum sınıflarının normal sınıfları gibi metotları olabilir.
+
+h6. Örüntü eşleştirmeyle durum sınıfları
+
+Durum sınıfları örüntü eşleştirmede kullanılmak üzere tasarlanmıştır. Şimdi önceki hesap makinesi sınıflandırıcımızı daha basitleştirelim.
+
+<pre>
+val hp20b = Calculator("HP", "20B")
+val hp30b = Calculator("HP", "30B")
+
+def calcType(calc: Calculator) = calc match {
+  case Calculator("HP", "20B") => "financial"
+  case Calculator("HP", "48G") => "scientific"
+  case Calculator("HP", "30B") => "business"
+  case Calculator(ourBrand, ourModel) => "Calculator: %s %s is of unknown type".format(ourBrand, ourModel)
+}
+</pre>
+
+Son eşleşme için diğer seçenekler
+
+<pre>
+  case Calculator(_, _) => "Calculator of unknown type"
+</pre>
+
+  Ya Da hesap makinesi olduğunu hiç belirlemeyebiliriz.
+
+<pre>
+  case _ => "Calculator of unknown type"
+</pre>
+
+  Ya Da eşleşen değeri başka bir isimle başka bir isimle tekrar bağlayabiliriz.
+
+<pre>
+  case c@Calculator(_, _) => "Calculator: %s of unknown type".format(c)
+</pre>
+
+h2(#exception). Kuraldışı Durumlar
+
+Scala'da kuraldışı durumlar try-catch-finally sözdizimi yoluyla örüntü eşleştirme kullanarak bulunur.
+
+<pre>
+try {
+  remoteCalculatorService.add(1, 2)
+} catch {
+  case e: ServerIsDownException => log.error(e, "the remote calculator service is unavailable. should have kept your trusty HP.")
+} finally {
+  remoteCalculatorService.close()
+}
+</pre>
+
+<code>try</code>lar ayrıca ifade-yönelimlidir.
+
+<pre>
+val result: Int = try {
+  remoteCalculatorService.add(1, 2)
+} catch {
+  case e: ServerIsDownException => {
+    log.error(e, "the remote calculator service is unavailable. should have kept your trusty HP.")
+    0
+  }
+} finally {
+  remoteCalculatorService.close()
+}
+</pre>
+
+Bu çok iyi bir programlama biçimi değildir. Sadece try-catch-finally sözdiziminin Scala'daki çoğu şey gibi bir ifadede sonuçlanmasının bir örneğidir.
+
+Finally kuraldışı durumlar işlendikten sonra çağırılacaktır ve ifadenin bir parçası değildir.
