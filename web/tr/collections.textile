@@ -1,0 +1,424 @@
+---
+prev: basics2.textile
+next: pattern-matching-and-functional-composition.textile
+title: Kolleksiyonlar(Collections)
+layout: post
+---
+
+Bu ders şunları kapsar:
+
+* Temel Veri Yapıları
+** "Arrays":#Arrays
+** "Lists":#Lists
+** "Sets":#Sets
+** "Tuple":#Tuple
+** "Maps":#Maps
+** "Option":#Option
+* Fonksiyonel Birleştiriciler
+** "map":#map
+** "foreach":#foreach
+** "filter":#filter
+** "zip":#zip
+** "partition":#partition
+** "find":#find
+** "drop ve dropWhile":#drop
+** "foldRight ve foldLeft":#fold
+** "flatten":#flatten
+** "flatMap":#flatMap
+** "Genelleşmiş fonksiyonel birleştiriciler":#generalized
+** "Map?":#vsMap
+
+h1. Temel Veri Yapıları
+
+Scala bazı güzel kolleksiyonlar sağlar.
+
+*Ayroca bkz* Effective Scala'nın <a href="https://twitter.github.com/effectivescala/#Collections">kolleksiyonlar</a> hakkındaki görüşleri.
+
+h2(#Arrays). Diziler(Arrays)
+
+Diziler sırayı korur, yinelemeler(duplicate) içerebilir ve değişkendir(mutable).
+
+<pre>
+scala> val numbers = Array(1, 2, 3, 4, 5, 1, 2, 3, 4, 5)
+numbers: Array[Int] = Array(1, 2, 3, 4, 5, 1, 2, 3, 4, 5)
+
+scala> numbers(3) = 10
+</pre>
+
+h2(#Lists). Listeler(Lists)
+
+Listeler sırayı korur, yinelemeler içerebilir ve değişmezdir(immutable).
+
+<pre>
+scala> val numbers = List(1, 2, 3, 4, 5, 1, 2, 3, 4, 5)
+numbers: List[Int] = List(1, 2, 3, 4, 5, 1, 2, 3, 4, 5)
+
+scala> numbers(3) = 10
+<console>:9: error: value update is not a member of List[Int]
+              numbers(3) = 10
+</pre>
+
+h2(#Sets). Setler(Sets)
+
+Setler sırayı korumaz ve yinelenmiş kayıt içermez.
+
+<pre>
+scala> val numbers = Set(1, 2, 3, 4, 5, 1, 2, 3, 4, 5)
+numbers: scala.collection.immutable.Set[Int] = Set(5, 1, 2, 3, 4)
+</pre>
+
+h2(#Tuple). Tuple
+
+Bir tuple sınıf kullanmadan basit mantıksal öğe kolleksiyonlarını birlikte gruplandırır.
+
+<pre>
+scala> val hostPort = ("localhost", 80)
+hostPort: (String, Int) = (localhost, 80)
+</pre>
+
+Durum sınıflarının(case class) aksine, adlandırılmış erişimcileri yoktur, bunun yerine konumlarına göre adlandırılmış 0-tabanlı değil 1-tabanlı erişimcileri vardır.
+
+<pre>
+scala> hostPort._1
+res0: String = localhost
+
+scala> hostPort._2
+res1: Int = 80
+</pre>
+
+Tuplelar örüntü eşleştirmeye iyi bir şekilde uyar.
+
+<pre>
+hostPort match {
+  case ("localhost", port) => ...
+  case (host, port) => ...
+}
+</pre>
+
+Tuplelar 2 değerleri Tuple yapmak için bazı özel dizimlere sahiptir: <code>-></code>
+
+<pre>
+scala> 1 -> 2
+res0: (Int, Int) = (1,2)
+</pre>
+
+*Ayrıca bkz* Effective Scala'nın <a href="https://twitter.github.com/effectivescala/#Functional programming-Destructuring bindings">bağlamları dağıtma</a> (tuple "açma" ) hakkındaki görüşleri.
+
+h2(#Maps). Maps
+
+Temel veri tiplerini tutabilir.
+
+<pre>
+Map(1 -> 2)
+Map("foo" -> "bar")
+</pre>
+
+Bu özel bir sözdizimine benziyor ancak Tuple hakkındaki tartışmamızı hatırlayın, <code>-></code> Tuple oluşturmak için kullanabilir.
+
+Map() ayrıca Ders # 1'de öğrendiğimiz değişken argüman sözdizimini de kullanır: <code>Map(1 -> "one", 2 -> "two")</code> genişletir <code>Map((1, "one"), (2, "two"))</code> birinci eleman anahtar, ikinci eleman ise Map'in değeridir.
+
+Mapler kendileri veya hatta değer olarak fonksiyonları da içerebilir.
+
+<pre>
+Map(1 -> Map("foo" -> "bar"))
+</pre>
+
+<pre>
+Map("timesTwo" -> { timesTwo(_) })
+</pre>
+
+h2(#Option). Option
+
+<code>Option</code> bir şeyi tutabilen ya da tutmayan taşıyıcılardır. 
+
+Option için temel bir arayüz şöyle görünür:
+
+<pre>
+trait Option[T] {
+  def isDefined: Boolean
+  def get: T
+  def getOrElse(t: T): T
+}
+</pre>
+
+Option'ın kendisi geneldir ve iki alt sınıfı vardır: <code>Some[T]</code> veya <code>None</code>
+
+Şimdi Option'ın örnekte nasıl kullanıldığına bakalım:
+
+<code>Map.get</code> dönüş tipi olarak <code>Option</code> kullanır. Option size şunu söyler, metot senin beklediğin şeyi dönmeyebilir. 
+
+<pre>
+scala> val numbers = Map("one" -> 1, "two" -> 2)
+numbers: scala.collection.immutable.Map[java.lang.String,Int] = Map(one -> 1, two -> 2)
+
+scala> numbers.get("two")
+res0: Option[Int] = Some(2)
+
+scala> numbers.get("three")
+res1: Option[Int] = None
+</pre>
+
+Şimdi verimiz bu <code>Option</code> içerisinde sıkışmış gözüküyor. Bununla nasıl çalışırız?
+
+İlk akla gelen <code>isDefined</code> metotunu temel alarak koşullu birşeyler yapmak olabilir.
+
+<pre>
+// We want to multiply the number by two, otherwise return 0.
+val result = if (res1.isDefined) {
+  res1.get * 2
+} else {
+  0
+}
+</pre>
+
+Bu sonucu elde etmek için <code>getOrElse</code> veya örüntü eşleştirmesini kullanmanızı tavsize ederiz.
+
+<code>getOrElse</code> kolayca varsayılan değer tanımlamanıza izin verir. 
+
+<pre>
+val result = res1.getOrElse(0) * 2
+</pre>
+
+Örüntü eşleştirme <code>Option</code> ile doğal olarak uyumludur.
+
+<pre>
+val result = res1 match {
+  case Some(n) => n * 2
+  case None => 0
+}
+</pre>
+
+*Ayrıca bkz* Effective Scala'nın <a href="https://twitter.github.com/effectivescala/#Functional programming-Options">Options</a> hakkındaki görüşleri.
+
+h1(#combinators). Fonksiyonel Birleştiriciler(Combinators)
+
+<code>List(1, 2, 3) map kare alma(squared)</code>, <code>kare alma</code> fonksiyonunu, listenin elemanlarına uygular, yeni bir liste, belki de <code>List(1, 4, 9)</code> döndürür. <code>map</code> gibi işlemlerde <em>birleştiricileri</em> çağırıyoruz. (Eğer daha iyi bir tanım isterseniz şuna bakabilirsiniz, Stackoverflow'da <a href="https://stackoverflow.com/questions/7533837/explanation-of-combinators-for-the-working-man">Birleştiricilerin açıklaması</a>.) En yaygın kullanımları standart veri yapılarıdır.
+
+h2(#map). map
+
+Listedeki her eleman üzerinde bir fonksiyonu hesaplar, aynı sayıda eleman içeren bir liste döndürür.
+
+<pre>
+scala> val numbers = List(1, 2, 3, 4)
+numbers: List[Int] = List(1, 2, 3, 4)
+
+scala> numbers.map((i: Int) => i * 2)
+res0: List[Int] = List(2, 4, 6, 8)
+</pre>
+
+ya da bir fonksiyonu geçirir (Scala derleyicisi otomatik olara metotumuzu fonksiyona çevirir)
+
+<pre>
+
+scala> def timesTwo(i: Int): Int = i * 2
+timesTwo: (i: Int)Int
+
+scala> numbers.map(timesTwo)
+res0: List[Int] = List(2, 4, 6, 8)
+</pre>
+
+h2(#foreach). foreach
+
+foreach map gibidir fakat hiçbir şey döndürmez. foreach sadece yan etkiler(side-effects) için tasarlanmıştır.
+
+<pre>
+scala> numbers.foreach((i: Int) => i * 2)
+</pre>
+
+hiçbir şey döndürmez.
+
+Dönüşü bir değerde tutmayı deneyebilirsiniz fakat tipi Unit(void) olacaktır.
+
+<pre>
+scala> val doubled = numbers.foreach((i: Int) => i * 2)
+doubled: Unit = ()
+</pre>
+
+h2(#filter). filter
+
+Geçirilen fonskiyon hesaplamasından yanlış(false) dönen elemanları siler. Boolean dönen fonksiyonlara çoğunlukla yüklem(predicate) fonksiyon denir.  
+
+<pre>
+scala> numbers.filter((i: Int) => i % 2 == 0)
+res0: List[Int] = List(2, 4)
+</pre>
+
+<pre>
+scala> def isEven(i: Int): Boolean = i % 2 == 0
+isEven: (i: Int)Boolean
+
+scala> numbers.filter(isEven)
+res2: List[Int] = List(2, 4)
+</pre>
+
+h2(#zip). zip
+
+zip iki listenin içeriklerini bir liste ikilisi içinde birleştirir.
+
+<pre>
+scala> List(1, 2, 3).zip(List("a", "b", "c"))
+res0: List[(Int, String)] = List((1,a), (2,b), (3,c))
+</pre>
+
+h2(#partition). partition
+
+<code>partition</code> bir listeyi yüklem(predicate) fonksiyon sonucuna göre ayrıştırır. 
+
+<pre>
+scala> val numbers = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+scala> numbers.partition(_ % 2 == 0)
+res0: (List[Int], List[Int]) = (List(2, 4, 6, 8, 10),List(1, 3, 5, 7, 9))
+</pre>
+
+h2(#find). find
+
+find, bir kolleksiyonun yüklem(predicate) fonksiyonla eşleşen ilk elemanını döndürür. 
+
+<pre>
+scala> numbers.find((i: Int) => i > 5)
+res0: Option[Int] = Some(6)
+</pre>
+
+h2(#drop). drop & dropWhile
+
+<code>drop</code> ilk i kadar elemanı düşürür.
+
+<pre>
+scala> numbers.drop(5)
+res0: List[Int] = List(6, 7, 8, 9, 10)
+</pre>
+
+<code>dropWhile</code> yüklem(predicate) fonksiyonla eşleştiği sürece elemanları siler. Örnek olarak, eğer number listemizdeki tek sayılarda we <code>dropWhile</code> uygularsak, <code>1</code> düşürülür. (fakat <code>3</code> değil çünkü <code>2</code> 2 tarafınfan konurur.)
+
+<pre>
+scala> numbers.dropWhile(_ % 2 != 0)
+res0: List[Int] = List(2, 3, 4, 5, 6, 7, 8, 9, 10)
+</pre>
+
+h2(#fold). foldLeft
+
+<pre>
+scala> numbers.foldLeft(0)((m: Int, n: Int) => m + n)
+res0: Int = 55
+</pre>
+
+0 başlangıç değeridir (Hatırlayın numbers bir List[Int]'tir), ve m akümülator olarak davranır.
+
+Görsel olarak:
+
+<pre>
+scala> numbers.foldLeft(0) { (m: Int, n: Int) => println("m: " + m + " n: " + n); m + n }
+m: 0 n: 1
+m: 1 n: 2
+m: 3 n: 3
+m: 6 n: 4
+m: 10 n: 5
+m: 15 n: 6
+m: 21 n: 7
+m: 28 n: 8
+m: 36 n: 9
+m: 45 n: 10
+res0: Int = 55
+</pre>
+
+h3. foldRight
+
+Ters yönde çalışması dışında foldLeft'in aynısıdır.
+
+<pre>
+scala> numbers.foldRight(0) { (m: Int, n: Int) => println("m: " + m + " n: " + n); m + n }
+m: 10 n: 0
+m: 9 n: 10
+m: 8 n: 19
+m: 7 n: 27
+m: 6 n: 34
+m: 5 n: 40
+m: 4 n: 45
+m: 3 n: 49
+m: 2 n: 52
+m: 1 n: 54
+res0: Int = 55
+</pre>
+
+h2(#flatten). flatten
+
+flatten iç içe yapıları bir seviye daraltır.
+flatten collapses one level of nested structure.
+
+<pre>
+scala> List(List(1, 2), List(3, 4)).flatten
+res0: List[Int] = List(1, 2, 3, 4)
+</pre>
+
+h2(#flatMap). flatMap
+
+flatMap sıkça kullanılan bir birleştiricidir, map ve flatten'ın birlikte kullanımıdır. flatMap iç içe listelerde çalışan bir fonksiyon alır ve sonuçları birleştirir.
+
+<pre>
+scala> val nestedNumbers = List(List(1, 2), List(3, 4))
+nestedNumbers: List[List[Int]] = List(List(1, 2), List(3, 4))
+
+scala> nestedNumbers.flatMap(x => x.map(_ * 2))
+res0: List[Int] = List(2, 4, 6, 8)
+</pre>
+
+Bunu map ve ardından flatten işleminin kısayolu olarak düşünün:
+
+<pre>
+scala> nestedNumbers.map((x: List[Int]) => x.map(_ * 2)).flatten
+res1: List[Int] = List(2, 4, 6, 8)
+</pre>
+
+map ve ardından flatten çağırmak, bu fonksiyonların "birleştirici(combinator)" benzeri doğasına bir örnektir.
+
+*Ayrıca bkzo* Effective Scala'nın <a href="https://twitter.github.com/effectivescala/#Functional programming-`flatMap`">flatMap</a> hakkındaki görüşleri.
+
+h2(#generalized). Genelleşmiş fonksiyonel birleştiriciler
+
+Şimdiye kadar kolleksiyonlarla çalışmak için çok çeşitli fonksiyonlar öğrendik.
+
+İstediğimiz şey kendi fonksiyonel birleştiricilerimizi yazamakbilmektir.
+
+İlginç bir şekilde, yukarıda verilen her bir fonksiyonel birleştirici fold ile yazılabilir. Birkaç örnek görelim.
+
+<pre>
+def ourMap(numbers: List[Int], fn: Int => Int): List[Int] = {
+  numbers.foldRight(List[Int]()) { (x: Int, xs: List[Int]) =>
+    fn(x) :: xs
+  }
+}
+
+scala> ourMap(numbers, timesTwo(_))
+res0: List[Int] = List(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)
+</pre>
+
+Neden <tt>List[Int]()</tt>? Scala, Int değerleri içine akümüle etmek için boş bir listeye ihtiyacınız olduğunu anlayacak kadar akıllı değil.
+
+h2(#vsMap). Map?
+
+Gösterilen tüm fonskiyonel birleştiriciler Map üzerinde de çalışır. Mapler liste ikililer olarak düşünülebilir, böylece yazdığınız fonksiyonlar Map içerisindeki anahtar(key) ve değer(value) üzerinde çalışır. 
+
+<pre>
+scala> val extensions = Map("steve" -> 100, "bob" -> 101, "joe" -> 201)
+extensions: scala.collection.immutable.Map[String,Int] = Map((steve,100), (bob,101), (joe,201))
+</pre>
+
+Telefon uzantısı 200'den küçük her kayıdı filtreler.
+
+<pre>
+scala> extensions.filter((namePhone: (String, Int)) => namePhone._2 < 200)
+res0: scala.collection.immutable.Map[String,Int] = Map((steve,100), (bob,101))
+</pre>
+
+Size bir tuple verdiğinden, anahtar ve değerleri onların konumsal erişimcilerilye çıkarmanız gerekir.
+
+Şanslıyız ki, anahtar ve değeleri güzel bir şekilde çıkarmak için örüntü eşleştirme kullanabiliriz. 
+
+<pre>
+scala> extensions.filter({case (name, extension) => extension < 200})
+res0: scala.collection.immutable.Map[String,Int] = Map((steve,100), (bob,101))
+</pre>
+
+Bu neden çalışıyor? Neden kısmi örüntü eşleştirme geçirebilirsin?
+
+Gelecek hafta için bizi izlemeye devam edin!

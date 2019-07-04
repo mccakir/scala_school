@@ -6,7 +6,7 @@ next: basics2.textile
 
 Not: Bu ders içeriği mümkün olduğunda Türkçe terimler kullanarak hazırlanmıştır. Gerekli yerlerde kelimelerin yanlarına İngilizceleri de eklenmiştir. Terimlerin farklı kullanımları hakkındaki yorumlarınızı lütfen paylaşınız.
 
-Bu ders aşağıdaki konuları kapsar:
+Bu ders şunları kapsar:
 * "Ders hakkında":#overview
 * "İfadeler(Expressions)":#expressions
 * "Değerler":#val

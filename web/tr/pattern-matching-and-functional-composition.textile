@@ -1,0 +1,147 @@
+---
+prev: collections.textile
+next: type-basics.textile
+title: Örüntü eşleştirme & fonksiyon birleşimleri
+layout: post
+---
+
+Bu ders şunları kapsar:
+
+* "Fonksiyon Birleşimleri":#composition
+** compose
+** andThen
+* "Currying vs Kısmi Uygulama":#curryvspartial
+* "PartialFunction(KısmiFonksiyon)":#PartialFunction
+** range ve domain
+** orElse ile birlikte birleşimler
+* "Durum ifadesi(case statement) nedir?":#case
+
+h2(#composition). Function Composition
+
+İki tane uygun bir şekilde isimlendirilmiş fonksiyon tanımlayalım:
+
+<pre>
+scala> def f(s: String) = "f(" + s + ")"
+f: (String)java.lang.String
+
+scala> def g(s: String) = "g(" + s + ")"
+g: (String)java.lang.String
+</pre>
+
+h3. compose
+
+<code>compose</code> diğer fonksiyonları birleştirip yeni bir fonksiyon oluşturur <code>f(g(x))</code>
+
+<pre>
+scala> val fComposeG = f _ compose g _
+fComposeG: (String) => java.lang.String = <function>
+
+scala> fComposeG("yay")
+res0: java.lang.String = f(g(yay))
+</pre>
+
+h3. andThen
+
+<code>andThen</code> <code>compose</code> gibidir, fakat önce ilk fonksiyonu, ardından ikinci fonksiyonu çağırır <code>g(f(x))</code>
+
+<pre>
+scala> val fAndThenG = f _ andThen g _
+fAndThenG: (String) => java.lang.String = <function>
+
+scala> fAndThenG("yay")
+res1: java.lang.String = g(f(yay))
+</pre>
+
+h2(#curryvspartial). Currying vs Kısmi Uygulama
+
+h3. durum ifadeleri
+
+h4. Durum ifadeleri nedir?
+
+Bir fonksiyonun alt sınıfıdır. PartialFunction(KısmiFonksiyon) olarak adlandırılır.
+
+h4. Çoklu durum ifadelerinin kolleksiyonu nedir?
+
+Bunlar birleştirilen çoklu kısni fonskiyonlardır(PartialFunction).
+
+h2(#PartialFunction). PartialFunction(KısmiFonksiyon) Anlama
+
+Bir fonksiyon tanımlı tipteki her argüman için çalışır. Diğer bir deyişle, (Int) => String olarakk tanımlanmış bir fonksiyon Int alır ve String döndürür.
+
+Bir PartialFunction(KısmiFonksiyon) sadece tanımlı tiplerin belirli değerleri için tanımlıdır. Bir (Int) => String kısmi fonskiyonu her Int değerini kabul etmeyebilir.
+
+<code>isDefinedAt</code> verilen argümanın PartialFunction(KısmiFonksiyon) tarafından kabul edilebilirliğini belirlemek için PartialFunction(KısmiFonksiyon)'da tanımlı bir metottur. 
+
+__Not__ <code>PartialFunction</code> daha önce konuştuğumuz kısmi uygulanan fonksiyonla alakasızdır.
+
+*Ayrıca bkz* Effective Scala'nın <a href="https://twitter.github.com/effectivescala/#Functional programming-Partial functions">PartialFunction(KısmiFonksiyon)</a> hakkındaki fikirleri.
+
+<pre>
+scala> val one: PartialFunction[Int, String] = { case 1 => "one" }
+one: PartialFunction[Int,String] = <function1>
+
+scala> one.isDefinedAt(1)
+res0: Boolean = true
+
+scala> one.isDefinedAt(2)
+res1: Boolean = false
+</pre>
+
+Bir kısmı fonksiyonu uygulayabilirsiniz.
+
+<pre>
+scala> one(1)
+res2: String = one
+</pre>
+
+PartialFunctions(KısmiFonksiyonlar) orElse çağırılarak birleştirilebilir.Bu, sağlanan argümanın tanımlı olduğu PartialFunction tarafından yansıtılır.
+
+<pre>
+scala> val two: PartialFunction[Int, String] = { case 2 => "two" }
+two: PartialFunction[Int,String] = <function1>
+
+scala> val three: PartialFunction[Int, String] = { case 3 => "three" }
+three: PartialFunction[Int,String] = <function1>
+
+scala> val wildcard: PartialFunction[Int, String] = { case _ => "something else" }
+wildcard: PartialFunction[Int,String] = <function1>
+
+scala> val partial = one orElse two orElse three orElse wildcard
+partial: PartialFunction[Int,String] = <function1>
+
+scala> partial(5)
+res24: String = something else
+
+scala> partial(3)
+res25: String = three
+
+scala> partial(2)
+res26: String = two
+
+scala> partial(1)
+res27: String = one
+
+scala> partial(0)
+res28: String = something else
+</pre>
+
+h3(#case). Durumların gizemi.
+
+Geçen ilginç bir şey gördük. Bu fonksiyon yerine kullanılan durum ifadesiydi(case statement).
+
+<pre>
+scala> case class PhoneExt(name: String, ext: Int)
+defined class PhoneExt
+
+scala> val extensions = List(PhoneExt("steve", 100), PhoneExt("robey", 200))
+extensions: List[PhoneExt] = List(PhoneExt(steve,100), PhoneExt(robey,200))
+
+scala> extensions.filter { case PhoneExt(name, extension) => extension < 200 }
+res0: List[PhoneExt] = List(PhoneExt(steve,100))
+</pre>
+
+Bu neden çalışıyor?
+
+filter bir fonskiyon alıyor. Bu durumda (PhoneExt) => Boolean bir yüklem(predicate) fonksiyon.
+
+Bir PartialFunction(KısmiFonksiyon) Function'ın alt tipi olduğundan filter da PartialFunction(KısmiFonksiyon) alabilir.

@@ -1,17 +1,17 @@
 ---
 prev: basics.textile
 next: collections.textile
-title: Basics continued
+title: Temel devam ediyor
 layout: post
 ---
 
-Bu ders aşağıdaki konuları kapsar:
+Bu ders şunları kapsar:
 * "Uygulama Metotları":#apply
 * "Nesneler":#object
 * "Fonksiyonlar Nesnedir":#fnobj
 * "Paketler":#package
-* "Örüntü ":#match
-* "case classes":#caseclass
+* "Örüntü":#match
+* "Durum Sınıfları":#caseclass
 * "try-catch-finally":#exception
 
 h2(#apply). Uygulama Metotları
@@ -262,7 +262,7 @@ res6: Boolean = true
 
 Durum sınıflarının normal sınıfları gibi metotları olabilir.
 
-h6. Örüntü eşleştirmeyle durum sınıfları
+h6. Örüntü Eşleştirmeyle Durum Sınıfları
 
 Durum sınıfları örüntü eşleştirmede kullanılmak üzere tasarlanmıştır. Şimdi önceki hesap makinesi sınıflandırıcımızı daha basitleştirelim.
 
