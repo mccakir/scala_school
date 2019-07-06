@@ -7,3 +7,4 @@ searchbird/*.log
 searchbird/*.lock
 lib_managed/
 target/
+web/tr/tr-eng-terimler.txt

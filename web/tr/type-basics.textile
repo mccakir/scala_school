@@ -9,64 +9,64 @@ Bu ders şunları kapsar:
 
 * "Durağan(static) tipler nelerdir?":#background
 * "Scala'da Tipler":#scala
-* "Parametrik Polimorfizm ":#parametricpoly
-* "Tip arayüzü: Hindley-Milner vs. yerel tip arayüzü":#inference
+* "Parametrik Polimorfizm":#parametricpoly
+* "Tip çıkarsama: Hindley-Milner vs. yerel tip çıkarsama":#inference
 * "Varyans":#variance
-* "Bounds":#bounds
+* "Sınırlar":#bounds
 * "Quantification":#quantification
 
-h2(#background). What are static types?  Why are they useful?
+h2(#background). Durağan tipler nedir?  Neden faydalıdır?
 
-According to Pierce: "A type system is a syntactic method for automatically checking the absence of certain erroneous behaviors by classifying program phrases according to the kinds of values they compute."
+Pierce'a göre : "Bir tip sistemi hesapladığı değerlerin türlerine göre program aşamalarını sınıflandırarak belirli hatalı davranışarın varlığını otomatik kontrol eden bir sözdizimsel metottur."
 
-Types allow you to denote function domain & codomains. For example, from mathematics, we are used to seeing:
+Tipler fonksiyon domain(bir fonksiyonun alabileceği değerler) & codomain(bir fonksiyondan dönebilecek değerler) belirtmenize izin verir. Örnek olarak şunu matematikten görmeye alışkınız:
 
 <pre>
 f: R -> N
 </pre>
 
-this tells us that function "f" maps values from the set of real numbers to values of the set of natural numbers.
+Bu bize fonksiyon "f" 'in reel sayılar kümesindeki değerleri doğal sayısındaki değerlere eşlediğini söyler.
 
-In the abstract, this is exactly what _concrete_ types are.  Type systems give us some more powerful ways to express these sets.
+Kuramsal olarak, bu tam olarak _concrete_ tiplerdir. Tip sistemleri bu kümeleri ifade etmek için bazı daha güçlü yollar sunar.
 
-Given these annotations, the compiler can now _statically_ (at compile time) verify that the program is _sound_. That is, compilation will fail if values (at runtime) will not comply to the constraints imposed by the program.
+Verilen bu ek açıklamalarla, derleyici _durağan olarak_ (derleme zamanında) programın _sağlam_ olduğunu doğrulayabilir. Diğer bir deyişle, değerler (çalışma zamanında) programın getirdiği kısıtlamalara uymazsa derleme başarısız olur.
 
-Generally speaking, the typechecker can only guarantee that _unsound_ programs do not compile. It cannot guarantee that every sound program _will_ compile.
+Genel olarak konuşursak, typechecker yalnızca _sağlam olmayan_ programların derlemediğini garanti edebilir. Her sağlam programın derleyeceğini _garanti edemez_.
 
-With increasing expressiveness in type systems, we can produce more reliable code because it allows us to prove invariants about our program before it even runs (modulo bugs in the types themselves, of course!). Academia is pushing the limits of expressiveness very hard, including value-dependent types!
+Tip sistemlerindeki artan açıklayıcılıkla, daha güvenilir kodlar üretebiliriz çünkü programımız hakkında değişmeyenleri bile çalışmadan önce kanıtlamamıza izin verir. Akademi, değere bağlı tipler de dahil olmak üzere açıklayıcılığını sınırlarını çok zorluyor.
 
-Note that all type information is removed at compile time. It is no longer needed. This is called erasure.
+Tüm tip bilgilerinin derleme zamanında kaldırıldığını unutmayın. Artık gerekli değildir. Buna silme(erasure) denir.
 
-h2(#scala). Types in Scala
+h2(#scala). Scala'da Tipler
 
-Scala's powerful type system allows for very rich expression. Some of its chief features are:
+Scala'nın güçlü tip sistemi çok zengin ifadelere izin verir. Bazı ana özellikleri:
 
-* *parametric polymorphism* roughly, generic programming
-* *(local) type inference* roughly, why you needn't say <code>val i: Int = 12: Int</code>
+* *parametrik polymorfizm* roughly, generic programming
+* *(yerel) tip çıkarsama* roughly, why you needn't say <code>val i: Int = 12: Int</code>
 * *existential quantification* roughly, defining something _for some_ unnamed type
 * *views* we'll learn these next week; roughly, "castability" of values of one type to another
 
-h2(#parametricpoly). Parametric polymorphism
+h2(#parametricpoly). Parametrik polimorfizm
 
-Polymorphism is used in order to write generic code (for values of different types) without compromising static typing richness.
+Polimorfizm durağan tiplerin zenginiliğinden taviz vermeden genel kod(farklı tipteki değeler için) yazmak için kullanılır.
 
-For example, without parametric polymorphism, a generic list data structure would always look like this (and indeed it did look like this in Java prior to generics):
+Örnek olarak, parametrik polimorfizm olmadan, bir genel list veri yapısı her zaman şöyle görünürdü (and indeed it did look like this in Java prior to generics):
 
 <pre>
 scala> 2 :: 1 :: "bar" :: "foo" :: Nil
 res5: List[Any] = List(2, 1, bar, foo)
 </pre>
 
-Now we cannot recover any type information about the individual members.
+Böyle olduğunda bireysel üyelerin tip bilgisini getiremeyiz.
 
 <pre>
 scala> res5.head
 res6: Any = 2
 </pre>
 
-And so our application would devolve into a series of casts ("asInstanceOf[]") and we would lack type safety (because these are all dynamic).
+Ve böylece uygulamamız bir dizi dönüşüme ("asInstanceOf[]")) mağruz kalacak ve tip güvenliğinden yoksun olacağız (çünkü hepsi dinamik).
 
-Polymorphism is achieved through specifying _type variables_.
+Polimorfizm _tip değişkenlerini_ belirterek elde edilir.
 
 <pre>
 scala> def drop1[A](l: List[A]) = l.tail
@@ -76,37 +76,37 @@ scala> drop1(List(1,2,3))
 res1: List[Int] = List(2, 3)
 </pre>
 
-h3. Scala has rank-1 polymorphism
+h3. Scala rank-1 polimorfizme sahip
 
-Roughly, this means that there are some type concepts you'd like to express in Scala that are "too generic" for the compiler to understand. Suppose you had some function
+Kabaca, bu Scala'da ifade etmek istediğiniz derleyicinin anlayamayacağı kadar "çok genel" bazı tip kavramlarının olduğunu anlamına gelir. Diyelim ki şöyle bir fonskiyonunuz var:
 
 <pre>
 def toList[A](a: A) = List(a)
 </pre>
 
-which you wished to use generically:
+bunu genel olarak kullanmak istediniz:
 
 <pre>
 def foo[A, B](f: A => List[A], b: B) = f(b)
 </pre>
 
-This does not compile, because all type variables have to be fixed at the invocation site. Even if you "nail down" type <code>B</code>,
+Bu derlenmez, çünkü tip değişkenlerinin başlatma yerinde sabitlenmesi gerekir.Tip <code>B</code> garantiye alınsa bile, 
 
 <pre>
 def foo[A](f: A => List[A], i: Int) = f(i)
 </pre>
 
-...you get a type mismatch.
+...tip uyumsuzluğu hatası alırsınız.
 
-h2(#inference). Type inference
+h2(#inference). Tip çıkarsaması
 
-A traditional objection to static typing is that it has much syntactic overhead. Scala alleviates this by providing _type inference_.
+Durağan tiplemeye(static typing) genel itiraz sözdizimsel ek yük doğurduğu yönündedir. Scala bunu _tip çıkarsaması(type inference)_ sağlayarak hafifletir.
 
-The classic method for type inference in functional programming languages is _Hindley-Milner_, and it was first employed in ML.
+Fonksiyonel programlama dillerinde tip çıkarsama(type inference) için klasik metot _Hindle-Milner_'dır. ve ilk olarak ML(Makine Öğremimi)'nde kullanılmıştır.
 
-Scala's type inference system works a little differently, but it's similar in spirit: infer constraints, and attempt to unify a type.
+Scala'nın tip çıkarsama sistemi biraz farklı çalışır, fakat özünde benzerdir: kısıtlamaları çıkarsa, ve bir tipi birleştirmeye çalış.
 
-In Scala, for example, you cannot do the following:
+Örnek olarak Scala'da şunu yapamazsınız:
 
 <pre>
 scala> { x => x }
@@ -114,14 +114,14 @@ scala> { x => x }
        { x => x }
 </pre>
 
-Whereas in OCaml, you can:
+Oysaki OCaml dilinde şunu yapabilirsiniz:
 
 <pre>
 # fun x -> x;;
 - : 'a -> 'a = <fun>
 </pre>
 
-In scala all type inference is _local_. Scala considers one expression at a time. For example:
+Scala'da tüm tip çıkarsaması _yerel(local)_'dir. Scala bir seferde ifadeyi değerlendirir. Örnek olarak: 
 
 <pre>
 scala> def id[T](x: T) = x
@@ -137,18 +137,18 @@ scala> val x = id(Array(1,2,3,4))
 x: Array[Int] = Array(1, 2, 3, 4)
 </pre>
 
-Types are now preserved, The Scala compiler infers the type parameter for us. Note also how we did not have to specify the return type explicitly.
+Tipler şimdi kourunur, Scala derleyicisi tip parametresini bizim için çıkarsar. Ayrıca dönüş tipini ayrıca belirtmek zorunda olmadığımızı da unutmayın.
 
-h2(#variance). Variance
+h2(#variance). Varyans(Variance)
 
-Scala's type system has to account for class hierarchies together with polymorphism.  Class hierarchies allow the expression of subtype relationships. A central question that comes up when mixing OO with polymorphism is: if <tt>T'</tt> is a subclass of <tt>T</tt>, is <tt>Container[T']</tt> considered a subclass of <tt>Container[T]</tt>? Variance annotations allow you to express the following relationships between class hierarchies & polymorphic types:
+Scala'nın tip sistemi polimorfizmle birlikte sınıf hiyerarşisini hesaba katmak zorundadır. Sınıf hiyerarşileri alt tip ilişki ifadelerine izin verir.  OO(Object Oriented)'yu poliformizmle karıştırırken ortaya çıkan temel soru şudur:  eğer <tt>T'</tt> <tt>T</tt>'nin alt sınıfıysa, <tt>Container[T']</tt> <tt>Container[T]</tt>'nin alt sınıfı olarak mı kabul edilir? Varyans açıkalamaları sınıf hiyerarşileri ve polimorfik tipler arasında aşağıdaki ilişkileri ifade etmemizi sağlar:
 
 |                |*Meaning*                     | *Scala notation*|
 |*covariant*     |C[T'] is a subclass of C[T]   | [+T]|
 |*contravariant* |C[T] is a subclass of C[T']   | [-T]|
 |*invariant*     |C[T] and C[T'] are not related| [T]|
 
-The subtype relationship really means: for a given type T, if T' is a subtype, can you substitute it?
+Alt tip ilişkisi şu anlama gelir: verilen bir T tipi için, eğer T' bir alt tip ise, yerine geçirebilir misiniz?
 
 <pre>
 scala> class Covariant[+A]
@@ -180,13 +180,13 @@ scala> val fail: Contravariant[AnyRef] = new Contravariant[String]
                                      ^
 </pre>
 
-Contravariance seems strange. When is it used? Somewhat surprising!
+Kontravaryans(Contravariance) biraz garip gözüküyor. Ne zaman kullanılır? Biraz şaşırtıcı!
 
 <pre>
 trait Function1 [-T1, +R] extends AnyRef
 </pre>
 
-If you think about this from the point of view of substitution, it makes a lot of sense. Let's first define a simple class hierarchy:
+Eğer bunu yerine geçme(substitution) bakış açısından düşünürseniz, çok mantıklı gelir. İlk önce basit bir sınıf hiyerarşisi tanımlayalım:
 
 <pre>
 scala> class Animal { val sound = "rustle" }
@@ -199,29 +199,29 @@ scala> class Chicken extends Bird { override val sound = "cluck" }
 defined class Chicken
 </pre>
 
-Suppose you need a function that takes a <code>Bird</code> param:
+<code>Bird</code> sınıfını parametre olarak alan bir fonksiyona ihtiyacınız olduğunu varsayalım:
 
 <pre>
 scala> val getTweet: (Bird => String) = // TODO
 </pre>
 
-The standard animal library has a function that does what you want, but it takes an <code>Animal</code> parameter instead.  In most situations, if you say "I need a ___, I have a subclass of ___", you're OK. But function parameters are contravariant. If you need a function that takes a <code>Bird</code> and you have a function that takes a <code>Chicken</code>, that function would choke on a <code>Duck</code>. But a function that takes an <code>Animal</code> is OK:
+Standart Animal kütüphanesi istediğinizi yapan bir fonksiyona sahip, fakat bu <code>Animal</code> parametresi alır. Çoğu durumda “___ 'ye ihtiyacım var, ___' nın bir alt sınıfına sahibim” derseniz, sorun yoktur. Fakat fonksiyon parametreleri kontravaryanttır. Eğer <code>Bird</code> parametresi alan bir fonksiyona ihtiyacınız varsa ve <code>Chicken</code> alan bir fonksiyonunuz varsa, bu fonksiyon <code>Duck</code> geldiğinde boğulur. Fakat fonksiyonun <code>Animal</code> almasında bir sorun yoktur:
 
 <pre>
 scala> val getTweet: (Bird => String) = ((a: Animal) => a.sound )
 getTweet: Bird => String = <function1>
 </pre>
 
-A function's return value type is covariant. If you need a function that returns a <code>Bird</code> but have a function that returns a <code>Chicken</code>, that's great.
+Bir fonksiyonun dönüş değer tipi kovaryanttır. Eğer <code>Bird</code> dönen bir fonksiyona ihtiyacınız varsa fakat fonksiyon <code>Chicken</code> dönüyorsa, bu harika.
 
 <pre>
 scala> val hatch: (() => Bird) = (() => new Chicken )
 hatch: () => Bird = <function0>
 </pre>
 
-h2(#bounds). Bounds
+h2(#bounds). Sınırlar(Bounds)
 
-Scala allows you to restrict polymorphic variables using _bounds_. These bounds express subtype relationships.
+Scala polimorfik değişkenleri _sınırlar(bounds)_ kullanarak sınırlamaya izin verir. Sınırlar alt tip ilişkilerini ifade eder.
 
 <pre>
 scala> def cacophony[T](things: Seq[T]) = things map (_.sound)
@@ -236,7 +236,7 @@ scala> biophony(Seq(new Chicken, new Bird))
 res5: Seq[java.lang.String] = List(cluck, call)
 </pre>
 
-Lower type bounds are also supported; they come in handy with contravariance and clever covariance. <code>List[+T]</code> is covariant; a list of Birds is a list of Animals. <code>List</code> defines an operator <code>::(elem T)</code> that returns a new <code>List</code> with <code>elem</code> prepended. The new <code>List</code> has the same type as the original:
+Düşük tip sınırlar da desteklenir; kontravaryans ve zekice kovaryans ile kullanışlı olurlar. <code>List[+T]</code> kovaryanttır; bir Birds listesi bir Animals listesidir. <code>List</code> önüne <code>elem</code> eklenmiş yeni bir <code>List</code> dönen bir operatör tanımlar <code>::(elem T)</code>. Yeni <code>List</code> orijinaliyle aynı tiptedir.
 
 <pre>
 scala> val flock = List(new Bird, new Bird)
@@ -246,55 +246,55 @@ scala> new Chicken :: flock
 res53: List[Bird] = List(Chicken@56fbda05, Bird@7e1ec70e, Bird@169ea8d2)
 </pre>
 
-<code>List</code> _also_ defines <code>::[B >: T](x: B)</code> which returns a <code>List[B]</code>. Notice the <code>B >: T</code>. That specifies type <code>B</code> as a superclass of <code>T</code>. That lets us do the right thing when prepending an <code>Animal</code> to a <code>List[Bird]</code>:
+_Ayrıca_ <code>List</code> <code>List[B]</code> dönen  <code>::[B >: T](x: B)</code> tanımlar. <code>B >: T</code> dikkat edin. <code>B</code> tipini <code>T</code>'nin üst sınıfı olarak belirtir. Bu bize <code>List[Bird]</code> başına <code>Animal</code> eklerken doğru şeyi yapmamıza izin verir:
 
 <pre>
 scala> new Animal :: flock
 res59: List[Animal] = List(Animal@11f8d3a8, Bird@7e1ec70e, Bird@169ea8d2)
 </pre>
 
-Note that the return type is <code>List[Animal]</code>.
+Dönüş tipinin <code>List[Animal]</code> olduğuna dikkat edin.
 
-h2(#quantification). Quantification
+h2(#quantification). Niceleme(Quantification)
 
-Sometimes you do not care to be able to name a type variable, for example:
+Bazı tip değişkenlerini isimlendirmeyi umursamazsınız, örnek olarak:
 
 <pre>
 scala> def count[A](l: List[A]) = l.size
 count: [A](List[A])Int
 </pre>
 
-Instead you can use "wildcards":
+Bunun yerine "genelgeçerler" kullanabilirsiniz:
 
 <pre>
 scala> def count(l: List[_]) = l.size
 count: (List[_])Int
 </pre>
 
-This is shorthand for:
+Bu şunun kısaltmasıdır:
 
 <pre>
 scala> def count(l: List[T forSome { type T }]) = l.size
 count: (List[T forSome { type T }])Int
 </pre>
 
-Note that quantification can get tricky:
+Nicelemenin zorlayıcı olabileceğini unutmayın:
 
 <pre>
 scala> def drop1(l: List[_]) = l.tail
 drop1: (List[_])List[Any]
 </pre>
 
-Suddenly we lost type information! To see what's going on, revert to the heavy-handed syntax:
+Birden tip bilgisini kaybettik! Neler olduğunu görmek için, zorlayıcı sözdizimine geri dönebiliriz:
 
 <pre>
 scala> def drop1(l: List[T forSome { type T }]) = l.tail
 drop1: (List[T forSome { type T }])List[T forSome { type T }]
 </pre>
 
-We can't say anything about T because the type does not allow it.
+T hakkında bir şey söyleyemeyiz, çünkü tipi buna izin vermiyor.
 
-You may also apply bounds to wildcard type variables:
+Ayrıca genelgeçer tip değişkenleri için de sınırlar uygulayabilirsiniz:
 
 <pre>
 scala> def hashcodes(l: Seq[_ <: AnyRef]) = l map (_.hashCode)
@@ -313,4 +313,4 @@ scala> hashcodes(Seq("one", "two", "three"))
 res1: Seq[Int] = List(110182, 115276, 110339486)
 </pre>
 
-*See Also* <a href="https://www.drmaciver.com/2008/03/existential-types-in-scala/">Existential types in Scala by D. R. MacIver</a>
+*Ayrıca bkz* <a href="https://www.drmaciver.com/2008/03/existential-types-in-scala/">D. R. MacIver ile Scala'da varoluşsal tipler</a>
